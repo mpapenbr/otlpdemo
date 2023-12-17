@@ -1,0 +1,39 @@
+receivers:
+  # Collect own metrics
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch:
+
+exporters:
+  debug:
+    verbosity: detailed
+
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    enable_open_metrics: true # should enable exemplars, but I still don't see them in prometheus
+
+  # could not get this working - MP 2023-12-17
+  # prometheusremotewrite:
+  #   endpoint: http://prometheus:9090/api/v1/write
+  #   tls:
+  #     insecure: true
+  otlp/tempo:
+    endpoint: "tempo:4317"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo]
+
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]

@@ -20,3 +20,4 @@ dist/**
 # Ignore private dotfiles
 .gitconfig.local*
 .npmrc
+.otlpdemo.yml

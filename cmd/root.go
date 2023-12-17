@@ -5,6 +5,7 @@ Copyright 2023 Markus Papenbrock
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -13,12 +14,23 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/mpapenbr/otlpdemo/cmd/config"
+	"github.com/mpapenbr/otlpdemo/cmd/web"
+	"github.com/mpapenbr/otlpdemo/log"
 	"github.com/mpapenbr/otlpdemo/version"
 )
 
 const envPrefix = "otlpdemo"
 
-var cfgFile string
+var (
+	cfgFile   string
+	telemetry *config.Telemetry
+)
+
+type MyContext struct {
+	context.Context
+	Bla string
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -26,6 +38,19 @@ var rootCmd = &cobra.Command{
 	Short:   "A brief description of your application",
 	Long:    ``,
 	Version: version.FullVersion,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		config.InitLogger(config.DefaultConfig())
+		ctx := MyContext{Bla: "fasel"}
+		cmd.SetContext(ctx)
+		// out, err := config.SetupStdOutTracing()
+		if config.DefaultConfig().EnableTelemetry {
+			var err error
+			if telemetry, err = config.SetupTelemetry(ctx); err != nil {
+				log.Error("Could not setup telemetry", log.ErrorField(err))
+			}
+			log.Info("Telemetry enabled")
+		}
+	},
 
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
@@ -37,6 +62,10 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
+	}
+
+	if telemetry != nil {
+		telemetry.Shutdown()
 	}
 }
 
@@ -50,12 +79,29 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"config file (default is $HOME/.otlpdemo.yml)")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	myConfig := config.DefaultConfig()
+
+	rootCmd.PersistentFlags().BoolVar(&myConfig.EnableTelemetry,
+		"enable-telemetry",
+		false,
+		"enables telemetry")
+	rootCmd.PersistentFlags().StringVar(&myConfig.TelemetryEndpoint,
+		"telemetry-endpoint",
+		"localhost:4317",
+		"Endpoint that receives open telemetry data")
+	rootCmd.PersistentFlags().StringVar(&myConfig.LogLevel,
+		"log-level",
+		"info",
+		"controls the log level (debug, info, warn, error, fatal)")
+
+	rootCmd.PersistentFlags().StringVar(&myConfig.LogFormat,
+		"log-format",
+		"json",
+		"controls the log output format")
 
 	// add commands here
-	// e.g. rootCmd.AddCommand(sampleCmd.NewSampleCmd())
+
+	rootCmd.AddCommand(web.NewWebCommand())
 }
 
 // initConfig reads in config file and ENV variables if set.

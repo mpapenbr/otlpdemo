@@ -12,6 +12,6 @@ func NewWebCommand() *cobra.Command {
 		Short: "collection of web commands",
 		Long:  ``,
 	}
-	ret.AddCommand(httpclient.NewJsonPlaceholderCommand())
+	ret.AddCommand(httpclient.NewJSONPlaceholderCommand())
 	return &ret
 }

@@ -14,19 +14,19 @@ import (
 	"github.com/mpapenbr/otlpdemo/log"
 )
 
-func NewJsonPlaceholderCommand() *cobra.Command {
+func NewJSONPlaceholderCommand() *cobra.Command {
 	ret := cobra.Command{
 		Use:   "jsonplaceholder",
 		Short: "issue requests to jsonplaceholder",
 		Long:  ``,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return queryJsonPlaceholder()
+			return queryJSONPlaceholder()
 		},
 	}
 	return &ret
 }
 
-func queryJsonPlaceholder() error {
+func queryJSONPlaceholder() error {
 	meter := otel.Meter("jsonplaceholder")
 	apiCounter, err := meter.Int64Counter("api.counter",
 		metric.WithDescription("Number of calls"),

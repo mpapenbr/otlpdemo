@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/mpapenbr/otlpdemo/cmd/config"
+	"github.com/mpapenbr/otlpdemo/cmd/sample"
 	"github.com/mpapenbr/otlpdemo/cmd/web"
 	"github.com/mpapenbr/otlpdemo/log"
 	"github.com/mpapenbr/otlpdemo/version"
@@ -39,11 +40,21 @@ var rootCmd = &cobra.Command{
 	Long:    ``,
 	Version: version.FullVersion,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		config.InitLogger(config.DefaultConfig())
+		logConfig := log.DefaultDevConfig()
+		if config.LogConfig != "" {
+			var err error
+			logConfig, err = log.LoadConfig(config.LogConfig)
+			if err != nil {
+				log.Fatal("could not load log config", log.ErrorField(err))
+			}
+		}
+		l := log.NewWithConfig(logConfig, config.LogLevel)
+		cmd.SetContext(log.AddToContext(context.Background(), l))
+		log.ResetDefault(l)
 		ctx := MyContext{Bla: "fasel"}
 		cmd.SetContext(ctx)
 		// out, err := config.SetupStdOutTracing()
-		if config.DefaultConfig().EnableTelemetry {
+		if config.EnableTelemetry {
 			var err error
 			if telemetry, err = config.SetupTelemetry(ctx); err != nil {
 				log.Error("Could not setup telemetry", log.ErrorField(err))
@@ -79,29 +90,23 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"config file (default is $HOME/.otlpdemo.yml)")
 
-	myConfig := config.DefaultConfig()
-
-	rootCmd.PersistentFlags().BoolVar(&myConfig.EnableTelemetry,
+	rootCmd.PersistentFlags().BoolVar(&config.EnableTelemetry,
 		"enable-telemetry",
 		false,
 		"enables telemetry")
-	rootCmd.PersistentFlags().StringVar(&myConfig.TelemetryEndpoint,
+	rootCmd.PersistentFlags().StringVar(&config.TelemetryEndpoint,
 		"telemetry-endpoint",
 		"localhost:4317",
 		"Endpoint that receives open telemetry data")
-	rootCmd.PersistentFlags().StringVar(&myConfig.LogLevel,
+	rootCmd.PersistentFlags().StringVar(&config.LogLevel,
 		"log-level",
 		"info",
 		"controls the log level (debug, info, warn, error, fatal)")
 
-	rootCmd.PersistentFlags().StringVar(&myConfig.LogFormat,
-		"log-format",
-		"json",
-		"controls the log output format")
-
 	// add commands here
 
 	rootCmd.AddCommand(web.NewWebCommand())
+	rootCmd.AddCommand(sample.NewSampleCommand())
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -129,9 +134,21 @@ func initConfig() {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
 
+	// we want all commands to be processed by the bindFlags function
+	// even those N levels deep
+	cmds := []*cobra.Command{}
+	collectCommands(rootCmd, &cmds)
+
 	bindFlags(rootCmd, viper.GetViper())
 	for _, cmd := range rootCmd.Commands() {
 		bindFlags(cmd, viper.GetViper())
+	}
+}
+
+func collectCommands(cmd *cobra.Command, commands *[]*cobra.Command) {
+	*commands = append(*commands, cmd)
+	for _, subCmd := range cmd.Commands() {
+		collectCommands(subCmd, commands)
 	}
 }
 

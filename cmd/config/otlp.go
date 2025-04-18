@@ -17,6 +17,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 
 	"github.com/mpapenbr/otlpdemo/log"
+	"github.com/mpapenbr/otlpdemo/version"
 )
 
 func SetupStdOutMetrics() (metric.Exporter, error) {
@@ -47,7 +48,7 @@ func SetupTelemetry(ctx context.Context) (*Telemetry, error) {
 	res := resource.NewWithAttributes(
 		semconv.SchemaURL,
 		semconv.ServiceNameKey.String("oltpdemo"),
-		semconv.ServiceVersionKey.String("0.0.1"),
+		semconv.ServiceVersionKey.String(version.Version),
 	)
 	ret := Telemetry{ctx: ctx}
 
@@ -67,7 +68,7 @@ func SetupTelemetry(ctx context.Context) (*Telemetry, error) {
 func setupMetrics(r *resource.Resource) (*metric.MeterProvider, error) {
 	exporter, err := otlpmetricgrpc.New(
 		context.Background(),
-		otlpmetricgrpc.WithEndpoint(config.TelemetryEndpoint),
+		otlpmetricgrpc.WithEndpoint(TelemetryEndpoint),
 		otlpmetricgrpc.WithInsecure(),
 	)
 	if err != nil {
@@ -86,7 +87,7 @@ func setupMetrics(r *resource.Resource) (*metric.MeterProvider, error) {
 func setupTraces(r *resource.Resource) (*trace.TracerProvider, error) {
 	exporter, err := otlptracegrpc.New(
 		context.Background(),
-		otlptracegrpc.WithEndpoint(config.TelemetryEndpoint),
+		otlptracegrpc.WithEndpoint(TelemetryEndpoint),
 		otlptracegrpc.WithInsecure(),
 	)
 	if err != nil {

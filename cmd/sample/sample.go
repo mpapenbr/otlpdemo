@@ -6,11 +6,12 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"github.com/mpapenbr/otlpdemo/log"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+
+	"github.com/mpapenbr/otlpdemo/log"
 )
 
 var (
@@ -31,15 +32,15 @@ func NewSampleCommand() *cobra.Command {
 	}
 	cmd.Flags().DurationVar(&duration,
 		"duration",
-		time.Duration(time.Minute*5),
+		time.Minute*5,
 		"duration of producing sample data")
 	cmd.Flags().DurationVar(&pause,
 		"pause",
-		time.Duration(time.Second*15),
+		time.Second*15,
 		"pause between samples")
 	cmd.Flags().DurationVar(&work,
 		"work",
-		time.Duration(time.Second*3),
+		time.Second*3,
 		"simulated work time")
 	cmd.Flags().Int32Var(&workSegments,
 		"segments",
@@ -72,13 +73,13 @@ func produceSampleData() error {
 	return nil
 }
 
+//nolint:gosec // ok here
 func doit(apiCounter metric.Int64Counter, apiDuration metric.Float64Histogram) error {
 	tracer := otel.Tracer("sampleData")
 	start := time.Now()
 	myCtx, span := tracer.Start(context.Background(), "sampleData")
 	defer span.End()
 
-	//
 	segs := rand.Int32N(workSegments) + 1
 	attrs := []attribute.KeyValue{
 		attribute.Int("segments", int(segs)),

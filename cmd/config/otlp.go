@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -11,27 +12,30 @@ import (
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	sdkresource "go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
 	"github.com/mpapenbr/otlpdemo/log"
-	"github.com/mpapenbr/otlpdemo/version"
 )
 
-func SetupStdOutMetrics() (metric.Exporter, error) {
+var (
+	resource          *sdkresource.Resource
+	initResourcesOnce sync.Once
+)
+
+func SetupStdOutMetrics() (sdkmetric.Exporter, error) {
 	return stdoutmetric.New()
 }
 
-func SetupStdOutTracing() (trace.SpanExporter, error) {
+func SetupStdOutTracing() (sdktrace.SpanExporter, error) {
 	return stdouttrace.New()
 }
 
 type Telemetry struct {
 	ctx     context.Context
-	metrics *metric.MeterProvider
-	traces  *trace.TracerProvider
+	metrics *sdkmetric.MeterProvider
+	traces  *sdktrace.TracerProvider
 }
 
 func (t Telemetry) Shutdown() {
@@ -45,19 +49,14 @@ func (t Telemetry) Shutdown() {
 }
 
 func SetupTelemetry(ctx context.Context) (*Telemetry, error) {
-	res := resource.NewWithAttributes(
-		semconv.SchemaURL,
-		semconv.ServiceNameKey.String("oltpdemo"),
-		semconv.ServiceVersionKey.String(version.Version),
-	)
 	ret := Telemetry{ctx: ctx}
 
-	if m, err := setupMetrics(res); err != nil {
+	if m, err := setupMetrics(); err != nil {
 		return nil, err
 	} else {
 		ret.metrics = m
 	}
-	if t, err := setupTraces(res); err != nil {
+	if t, err := setupTraces(); err != nil {
 		return nil, err
 	} else {
 		ret.traces = t
@@ -65,40 +64,36 @@ func SetupTelemetry(ctx context.Context) (*Telemetry, error) {
 	return &ret, nil
 }
 
-func setupMetrics(r *resource.Resource) (*metric.MeterProvider, error) {
+func setupMetrics() (*sdkmetric.MeterProvider, error) {
 	exporter, err := otlpmetricgrpc.New(
 		context.Background(),
-		otlpmetricgrpc.WithEndpoint(TelemetryEndpoint),
-		otlpmetricgrpc.WithInsecure(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	provider := metric.NewMeterProvider(
-		metric.WithResource(r),
-		metric.WithReader(metric.NewPeriodicReader(exporter,
-			metric.WithInterval(15*time.Second))), // TODO: configure?
+	provider := sdkmetric.NewMeterProvider(
+		sdkmetric.WithResource(initResource()),
+		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter,
+			sdkmetric.WithInterval(15*time.Second))), // TODO: configure?
 	)
 
 	otel.SetMeterProvider(provider)
 	return provider, nil
 }
 
-func setupTraces(r *resource.Resource) (*trace.TracerProvider, error) {
+func setupTraces() (*sdktrace.TracerProvider, error) {
 	exporter, err := otlptracegrpc.New(
 		context.Background(),
-		otlptracegrpc.WithEndpoint(TelemetryEndpoint),
-		otlptracegrpc.WithInsecure(),
 	)
 	if err != nil {
 		return nil, err
 	}
-	provider := trace.NewTracerProvider(
-		trace.WithBatcher(exporter),
-		trace.WithResource(r),
+	provider := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(initResource()),
 		// set the sampling rate based on the parent span to 60%
-		// trace.WithSampler(trace.ParentBased(trace.TraceIDRatioBased(0.6))),
-		trace.WithSampler(trace.AlwaysSample()), // TODO: confiure?
+		sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(0.6))),
+		// sdktrace.WithSampler(sdktrace.AlwaysSample()), // TODO: confiure?
 	)
 
 	otel.SetTracerProvider(provider)
@@ -106,8 +101,25 @@ func setupTraces(r *resource.Resource) (*trace.TracerProvider, error) {
 	otel.SetTextMapPropagator(
 		propagation.NewCompositeTextMapPropagator(
 			// W3C Trace Context format; https://www.w3.org/TR/trace-context/
-			propagation.TraceContext{},
+			propagation.TraceContext{}, propagation.Baggage{},
 		),
 	)
 	return provider, nil
+}
+
+func initResource() *sdkresource.Resource {
+	initResourcesOnce.Do(func() {
+		extraResources, _ := sdkresource.New(
+			context.Background(),
+			sdkresource.WithOS(),
+			sdkresource.WithProcess(),
+			sdkresource.WithContainer(),
+			sdkresource.WithHost(),
+		)
+		resource, _ = sdkresource.Merge(
+			sdkresource.Default(),
+			extraResources,
+		)
+	})
+	return resource
 }

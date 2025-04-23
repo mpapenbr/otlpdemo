@@ -4,6 +4,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mpapenbr/otlpdemo/cmd/config"
+	"github.com/mpapenbr/otlpdemo/cmd/web/grpcclient"
+	"github.com/mpapenbr/otlpdemo/cmd/web/grpcserver"
 	"github.com/mpapenbr/otlpdemo/cmd/web/httpclient"
 	"github.com/mpapenbr/otlpdemo/cmd/web/webserver"
 )
@@ -42,5 +44,7 @@ func NewWebCommand() *cobra.Command {
 	cmd.AddCommand(httpclient.NewJSONPlaceholderCommand())
 	cmd.AddCommand(httpclient.NewTLSClientCommand())
 	cmd.AddCommand(webserver.NewSimpleWebserverCommand())
+	cmd.AddCommand(grpcserver.NewSimpleGRPCServerCommand())
+	cmd.AddCommand(grpcclient.NewSimpleGRPCClientCommand())
 	return &cmd
 }

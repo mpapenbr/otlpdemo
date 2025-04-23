@@ -7,4 +7,11 @@ var (
 	LogConfig         string
 	LogFile           string
 	LogLevel          string
+	Insecure          bool   // connect to server without TLS
+	TLSSkipVerify     bool   // skip TLS verification
+	TLSCert           string // path to TLS certificate
+	TLSKey            string // path to TLS key
+	TLSCa             string // path to TLS CA
+	TLSClientAuth     string // TLS client authentication mode
+	Address           string // address to listen on/connect to
 )

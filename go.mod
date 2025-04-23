@@ -11,6 +11,8 @@ require (
 )
 
 require (
+	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.5.1-20240225081811-660e50fef482.2 // indirect
+	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.6-20240225081811-660e50fef482.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -19,6 +21,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
+	google.golang.org/genproto v0.0.0-20250422160041-2d3770c4ea7f // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250414145226-207652e42e2e // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250414145226-207652e42e2e // indirect
 	google.golang.org/grpc v1.71.1 // indirect

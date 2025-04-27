@@ -226,6 +226,14 @@ OR
 make run q="--version"
 ```
 
+### Exporting `otlp-env.sh` vars
+
+```console
+set -a
+. ./otlp-env.sh
+set +a
+```
+
 <br>
 
 ## Releases

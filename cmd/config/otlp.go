@@ -92,7 +92,7 @@ func setupTraces() (*sdktrace.TracerProvider, error) {
 		sdktrace.WithBatcher(exporter),
 		sdktrace.WithResource(initResource()),
 		// set the sampling rate based on the parent span to 60%
-		sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(0.6))),
+		// sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(0.6))),
 		// sdktrace.WithSampler(sdktrace.AlwaysSample()), // TODO: confiure?
 	)
 

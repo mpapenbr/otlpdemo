@@ -15,8 +15,10 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	"github.com/mpapenbr/otlpdemo/log"
+	"github.com/mpapenbr/otlpdemo/version"
 )
 
 var (
@@ -115,6 +117,7 @@ func initResource() *sdkresource.Resource {
 			sdkresource.WithProcess(),
 			sdkresource.WithContainer(),
 			sdkresource.WithHost(),
+			sdkresource.WithAttributes(semconv.ServiceVersion(version.Version)),
 		)
 		resource, _ = sdkresource.Merge(
 			sdkresource.Default(),

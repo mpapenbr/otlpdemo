@@ -53,7 +53,7 @@ func queryJSONPlaceholder() error {
 func doit(apiCounter metric.Int64Counter, apiDuration metric.Float64Histogram) error {
 	tracer := otel.Tracer("jsonplaceholder")
 	start := time.Now()
-	_, span := tracer.Start(context.Background(), "jsonplaceholder")
+	ctx, span := tracer.Start(context.Background(), "jsonplaceholder")
 	defer span.End()
 
 	req, err := http.NewRequestWithContext(
@@ -83,7 +83,7 @@ func doit(apiCounter metric.Int64Counter, apiDuration metric.Float64Histogram) e
 	log.Debug("request done",
 		log.Int("status", resp.StatusCode), log.Int("bytes", len(body)))
 	resp.Body.Close()
-	apiCounter.Add(context.Background(), 1)
-	apiDuration.Record(context.Background(), (time.Since(start)).Seconds())
+	apiCounter.Add(ctx, 1)
+	apiDuration.Record(ctx, (time.Since(start)).Seconds())
 	return nil
 }

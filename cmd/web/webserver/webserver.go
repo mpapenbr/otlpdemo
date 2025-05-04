@@ -128,7 +128,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		span := trace.SpanFromContext(r.Context())
 		if span.SpanContext().HasTraceID() {
 			fields = append(fields,
-				log.String("traceID", span.SpanContext().TraceID().String()))
+				log.String("trace_id", span.SpanContext().TraceID().String()))
 		}
 		log.Debug("Request received", fields...)
 
@@ -316,6 +316,7 @@ func doCall(ctx context.Context, url, operation string) (ret []byte, err error) 
 	}
 	log.Debug("request done",
 		log.String("traceID", span.SpanContext().TraceID().String()),
+		log.String("traceId", span.SpanContext().TraceID().String()),
 		log.Int("status", resp.StatusCode), log.Int("bytes", len(body)))
 	return body, nil
 }

@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/contrib/bridges/otelzap"
+	otellog "go.opentelemetry.io/otel/sdk/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"moul.io/zapfilter"
@@ -270,6 +272,41 @@ func NewWithConfig(cfg *Config, level string) *Logger {
 
 	logger := &Logger{
 		l: zap.New(lt.Core(),
+			zap.WithCaller(!cfg.Zap.DisableCaller),
+			zap.AddStacktrace(zap.ErrorLevel),
+			AddCallerSkip(1)),
+		level:         lt.Level(),
+		baseConfig:    &cfg.Zap,
+		loggerConfigs: cfg.Loggers,
+	}
+	return logger
+}
+
+func OtelTest(cfg *Config, level string, provider *otellog.LoggerProvider) *Logger {
+	if level != "" {
+		lvl, _ := zap.ParseAtomicLevel(level)
+		cfg.Zap.Level = lvl
+	}
+
+	lt, _ := cfg.Zap.Build()
+	myCore := lt.Core()
+	if cfg.Filters != nil {
+		// concatenate items to one string
+		var filters string
+		for _, filter := range cfg.Filters {
+			filters += filter + " "
+		}
+		lt = zap.New(zapfilter.NewFilteringCore(
+			myCore,
+			zapfilter.MustParseRules(filters)),
+		)
+	}
+	xCore := zapcore.NewTee(
+		lt.Core(),
+		otelzap.NewCore("dings", otelzap.WithLoggerProvider(provider)),
+	)
+	logger := &Logger{
+		l: zap.New(xCore,
 			zap.WithCaller(!cfg.Zap.DisableCaller),
 			zap.AddStacktrace(zap.ErrorLevel),
 			AddCallerSkip(1)),

@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/mpapenbr/otlpdemo/cmd/config"
+	"github.com/mpapenbr/otlpdemo/cmd/raw"
 	"github.com/mpapenbr/otlpdemo/cmd/sample"
 	"github.com/mpapenbr/otlpdemo/cmd/web"
 	"github.com/mpapenbr/otlpdemo/log"
@@ -56,9 +57,13 @@ var rootCmd = &cobra.Command{
 		// out, err := config.SetupStdOutTracing()
 		if config.EnableTelemetry {
 			var err error
-			if telemetry, err = config.SetupTelemetry(ctx); err != nil {
+			if telemetry, err = config.SetupTelemetry(); err != nil {
 				log.Error("Could not setup telemetry", log.ErrorField(err))
 			}
+
+			// l := log.OtelTest(logConfig, config.LogLevel, telemetry.LoggerProvider())
+			cmd.SetContext(log.AddToContext(context.Background(), l))
+			log.ResetDefault(l)
 			log.Info("Telemetry enabled")
 		}
 	},
@@ -107,6 +112,8 @@ func init() {
 
 	rootCmd.AddCommand(web.NewWebCommand())
 	rootCmd.AddCommand(sample.NewSampleCommand())
+
+	rootCmd.AddCommand(raw.NewRawOTLPCommand())
 }
 
 // initConfig reads in config file and ENV variables if set.

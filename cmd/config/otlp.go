@@ -3,15 +3,20 @@ package config
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -34,10 +39,85 @@ func SetupStdOutTracing() (sdktrace.SpanExporter, error) {
 	return stdouttrace.New()
 }
 
-type Telemetry struct {
-	ctx     context.Context
-	metrics *sdkmetric.MeterProvider
-	traces  *sdktrace.TracerProvider
+func SetupStdOutLog() (sdklog.Exporter, error) {
+	return stdoutlog.New()
+}
+
+type (
+	config struct {
+		ctx    context.Context
+		output TelemetryOutput
+	}
+	Telemetry struct {
+		config  *config
+		metrics *sdkmetric.MeterProvider
+		traces  *sdktrace.TracerProvider
+		logs    *sdklog.LoggerProvider
+	}
+	TelemetryOutput int
+	TelemetryOption func(cfg *config)
+)
+
+const (
+	StdOut TelemetryOutput = iota
+	Grpc
+)
+
+func (to TelemetryOutput) String() string {
+	switch to {
+	case StdOut:
+		return "stdout"
+	case Grpc:
+		return "grpc"
+	default:
+		return "unknown"
+	}
+}
+
+func ParseTelemetryOutput(arg string) TelemetryOutput {
+	switch strings.ToLower(arg) {
+	case "stdout":
+		return StdOut
+	case "grpc":
+		return Grpc
+	default:
+		return StdOut
+	}
+}
+
+func WithTelemetryContext(arg context.Context) TelemetryOption {
+	return func(cfg *config) {
+		cfg.ctx = arg
+	}
+}
+
+func WithTelemetryOutput(arg TelemetryOutput) TelemetryOption {
+	return func(cfg *config) {
+		cfg.output = arg
+	}
+}
+
+func SetupTelemetry(opts ...TelemetryOption) (*Telemetry, error) {
+	config := config{
+		ctx:    context.Background(),
+		output: Grpc,
+	}
+	for _, opt := range opts {
+		opt(&config)
+	}
+	ret := Telemetry{config: &config}
+
+	if err := ret.setupMetrics(); err != nil {
+		return nil, err
+	}
+	if err := ret.setupTraces(); err != nil {
+		return nil, err
+	}
+	if err := ret.setupLogs(); err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
 }
 
 func (t Telemetry) Shutdown() {
@@ -48,30 +128,25 @@ func (t Telemetry) Shutdown() {
 	if err := t.traces.Shutdown(context.Background()); err != nil {
 		fmt.Printf("shutdown traces error:%+v\n", err)
 	}
+	if err := t.logs.Shutdown(context.Background()); err != nil {
+		fmt.Printf("shutdown logs error:%+v\n", err)
+	}
 }
 
-func SetupTelemetry(ctx context.Context) (*Telemetry, error) {
-	ret := Telemetry{ctx: ctx}
-
-	if m, err := setupMetrics(); err != nil {
-		return nil, err
-	} else {
-		ret.metrics = m
-	}
-	if t, err := setupTraces(); err != nil {
-		return nil, err
-	} else {
-		ret.traces = t
-	}
-	return &ret, nil
+func (t Telemetry) LoggerProvider() *sdklog.LoggerProvider {
+	return t.logs
 }
 
-func setupMetrics() (*sdkmetric.MeterProvider, error) {
-	exporter, err := otlpmetricgrpc.New(
-		context.Background(),
-	)
+func (t *Telemetry) setupMetrics() (err error) {
+	var exporter sdkmetric.Exporter
+	switch t.config.output {
+	case StdOut:
+		exporter, err = stdoutmetric.New()
+	case Grpc:
+		exporter, err = otlpmetricgrpc.New(t.config.ctx)
+	}
 	if err != nil {
-		return nil, err
+		return err
 	}
 	provider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(initResource()),
@@ -80,15 +155,20 @@ func setupMetrics() (*sdkmetric.MeterProvider, error) {
 	)
 
 	otel.SetMeterProvider(provider)
-	return provider, nil
+	t.metrics = provider
+	return nil
 }
 
-func setupTraces() (*sdktrace.TracerProvider, error) {
-	exporter, err := otlptracegrpc.New(
-		context.Background(),
-	)
+func (t *Telemetry) setupTraces() (err error) {
+	var exporter sdktrace.SpanExporter
+	switch t.config.output {
+	case StdOut:
+		exporter, err = stdouttrace.New()
+	case Grpc:
+		exporter, err = otlptracegrpc.New(t.config.ctx)
+	}
 	if err != nil {
-		return nil, err
+		return err
 	}
 	provider := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
@@ -106,7 +186,28 @@ func setupTraces() (*sdktrace.TracerProvider, error) {
 			propagation.TraceContext{}, propagation.Baggage{},
 		),
 	)
-	return provider, nil
+	t.traces = provider
+	return nil
+}
+
+func (t *Telemetry) setupLogs() (err error) {
+	var exporter sdklog.Exporter
+	switch t.config.output {
+	case StdOut:
+		exporter, err = stdoutlog.New()
+	case Grpc:
+		exporter, err = otlploggrpc.New(t.config.ctx)
+	}
+	if err != nil {
+		return err
+	}
+	provider := sdklog.NewLoggerProvider(
+		sdklog.WithProcessor(sdklog.NewSimpleProcessor(exporter)),
+		// sdklog.WithResource(initResource()),
+	)
+	global.SetLoggerProvider(provider)
+	t.logs = provider
+	return nil
 }
 
 func initResource() *sdkresource.Resource {

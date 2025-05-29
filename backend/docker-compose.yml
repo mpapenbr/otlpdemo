@@ -14,7 +14,7 @@ x-logging: &default-logging
 services:
 
   loki:
-    image: grafana/loki:3.5.0
+    image: grafana/loki:3.5.1
     restart: unless-stopped
     ports:
       - "3100:3100"
@@ -23,7 +23,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:11.6.1
+    image: grafana/grafana:12.0.1
     restart: unless-stopped
     volumes:
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
@@ -38,7 +38,7 @@ services:
       - 3000:3000
 
   otlp:
-    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.124.1
+    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.127.0
     command: ["--config=/etc/otel-collector-config.yml"]
     restart: unless-stopped
     #extra_hosts: ['host.docker.internal:host-gateway']
@@ -54,7 +54,7 @@ services:
       - monitoring
 
   prometheus:
-    image: prom/prometheus:v3.3.0
+    image: prom/prometheus:v3.4.0
     restart: unless-stopped
     environment:
       TZ: "Europe/Berlin"

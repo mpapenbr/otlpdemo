@@ -14,4 +14,6 @@ var (
 	TLSCa             string // path to TLS CA
 	TLSClientAuth     string // TLS client authentication mode
 	Address           string // address to listen on/connect to
+	EnableOtelLogger  bool   // if true, otel-logger is setup in rootCmd
+	OtelOuput         string // output for otel-logger (stdout, grpc)
 )

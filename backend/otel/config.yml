@@ -3,37 +3,56 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: otlp:4317 # use service name here
       http:
+        endpoint: otlp:4318 # use service name here
 
 processors:
   batch:
+  memory_limiter:
+    check_interval: 2s
+    limit_percentage: 30
+    spike_limit_percentage: 10
+
+  attributes/prometheus:
+    actions:
+      - key: service_version
+        action: delete
 
 exporters:
   debug:
     verbosity: detailed
 
-  prometheus:
-    endpoint: "0.0.0.0:8889"
-    enable_open_metrics: true # should enable exemplars, but I still don't see them in prometheus
-
-  # could not get this working - MP 2023-12-17
-  # prometheusremotewrite:
-  #   endpoint: http://prometheus:9090/api/v1/write
-  #   tls:
-  #     insecure: true
   otlp/tempo:
     endpoint: "tempo:4317"
     tls:
       insecure: true
+  otlphttp/loki:
+    endpoint: "http://loki:3100/otlp"
+    tls:
+      insecure: true
+  otlphttp/prometheus:
+    endpoint: http://prometheus:9090/api/v1/otlp
+    tls:
+      insecure: true
 
 service:
+  telemetry:
+    logs:
+      level: debug
+
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp/tempo]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/tempo, debug]
 
     metrics:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus]
+      processors: [memory_limiter, attributes/prometheus, batch]
+      exporters: [otlphttp/prometheus]
+
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/loki, debug]

@@ -14,6 +14,9 @@ updates:
     schedule:
       interval: "weekly"
       day: "saturday"
+    groups:
+      dependencies:
+        dependency-type: "production"
 
   - package-ecosystem: github-actions
     directory: /
@@ -21,6 +24,7 @@ updates:
       - build
     schedule:
       interval: "weekly"
+      day: "saturday"
     groups:
       github-actions:
         dependency-type: "production"
@@ -28,3 +32,16 @@ updates:
       prefix: "gha"
       include: "scope"
 
+  - package-ecosystem: docker-compose
+    directory: /backend
+    labels:
+      - build
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+    groups:
+      github-actions:
+        dependency-type: "production"
+    commit-message:
+      prefix: "docker"
+      include: "scope"

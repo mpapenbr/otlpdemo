@@ -8,16 +8,42 @@ deleteDatasources:
 
 # list of datasources to insert/update depending
 # what's available in the database
+# These datasources are connected to cope with data ingested by the OpenTelemetry collector
+# via gRPC to loki, tempo and prometheus
+# The otel-collector receives the data completely via gRPC. No scrapers are used for prometheus or loki
+# MP 2025-05-04
 datasources:
-  # <string, required> name of the datasource. Required
+  - uid: loki
+    orgId: 1
+    name: Loki
+    type: loki
+    typeName: Loki
+    typeLogoUrl: public/app/plugins/datasource/loki/img/loki_icon.svg
+    access: proxy
+    url: http://loki:3100
+    user: ""
+    database: ""
+    basicAuth: false
+    isDefault: false
+    jsonData:
+      derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: trace_id
+          matcherType: label
+          name: trace_id
+          # Note: the $$ is used to escape the $ for the import. In Grafana there is only one $.
+          url: $${__value.raw}
+          urlDisplayLabel: ""
+    readOnly: false
+    editable: true
   - uid: prometheus
     orgId: 1
     name: Prometheus
     type: prometheus
     typeName: Prometheus
+    typeLogoUrl: public/app/plugins/datasource/prometheus/img/prometheus_logo.svg
     access: proxy
     url: http://prometheus:9090
-    password: ""
     user: ""
     database: ""
     basicAuth: false
@@ -34,9 +60,9 @@ datasources:
     name: Tempo
     type: tempo
     typeName: Tempo
+    typeLogoUrl: public/app/plugins/datasource/tempo/img/tempo_logo.svg
     access: proxy
     url: http://tempo:3200
-    password: ""
     user: ""
     database: ""
     basicAuth: false
@@ -46,32 +72,13 @@ datasources:
         enabled: true
       search:
         hide: false
-      tracesToLogs:
+      tracesToLogsV2:
+        customQuery: true
         datasourceUid: loki
         filterBySpanID: false
-        filterByTraceID: true
-        mapTagNamesEnabled: false
-        tags:
-          - compose_service
-    readOnly: false
-    editable: true
-  - uid: loki
-    orgId: 1
-    name: Loki
-    type: loki
-    typeName: Loki
-    access: proxy
-    url: http://loki:3100
-    password: ""
-    user: ""
-    database: ""
-    basicAuth: false
-    isDefault: false
-    jsonData:
-      derivedFields:
-        - datasourceUid: tempo
-          matcherRegex: (?:trace_id)=(\w+)
-          name: TraceID
-          url: $${__value.raw}
+        filterByTraceID: false
+        # Note: the $$ is used to escape the $ for the import. In Grafana there is only one $.
+        query: '{$${__tags}} |  trace_id="$${__trace.traceId}"'
+
     readOnly: false
     editable: true

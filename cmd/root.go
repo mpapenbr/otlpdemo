@@ -15,17 +15,21 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/mpapenbr/otlpdemo/cmd/config"
+	"github.com/mpapenbr/otlpdemo/cmd/raw"
 	"github.com/mpapenbr/otlpdemo/cmd/sample"
 	"github.com/mpapenbr/otlpdemo/cmd/web"
 	"github.com/mpapenbr/otlpdemo/log"
+	"github.com/mpapenbr/otlpdemo/otel"
 	"github.com/mpapenbr/otlpdemo/version"
 )
 
 const envPrefix = "otlpdemo"
 
 var (
-	cfgFile   string
-	telemetry *config.Telemetry
+	cfgFile             string
+	telemetry           *otel.Telemetry
+	useZap              bool
+	removeContextFields bool
 )
 
 type MyContext struct {
@@ -36,7 +40,7 @@ type MyContext struct {
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:     "otlpdemo",
-	Short:   "A brief description of your application",
+	Short:   "collection of commands to test OTLP functionality",
 	Long:    ``,
 	Version: version.FullVersion,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -48,19 +52,25 @@ var rootCmd = &cobra.Command{
 				log.Fatal("could not load log config", log.ErrorField(err))
 			}
 		}
-		l := log.NewWithConfig(logConfig, config.LogLevel)
-		cmd.SetContext(log.AddToContext(context.Background(), l))
-		log.ResetDefault(l)
-		ctx := MyContext{Bla: "fasel"}
-		cmd.SetContext(ctx)
-		// out, err := config.SetupStdOutTracing()
+
 		if config.EnableTelemetry {
 			var err error
-			if telemetry, err = config.SetupTelemetry(ctx); err != nil {
+			if telemetry, err = otel.SetupTelemetry(
+				otel.WithTelemetryOutput(otel.ParseTelemetryOutput(config.OtelOuput)),
+			); err != nil {
 				log.Error("Could not setup telemetry", log.ErrorField(err))
 			}
-			log.Info("Telemetry enabled")
 		}
+
+		l := log.New(
+			log.WithLogConfig(logConfig),
+			log.WithLogLevel(config.LogLevel),
+			log.WithTelemetry(telemetry),
+			log.WithRemoveContextFields(removeContextFields),
+			log.WithUseZap(useZap),
+		)
+		cmd.SetContext(log.AddToContext(context.Background(), l))
+		log.ResetDefault(l)
 	},
 
 	// Uncomment the following line if your bare application
@@ -78,6 +88,8 @@ func Execute() {
 	if telemetry != nil {
 		telemetry.Shutdown()
 	}
+	//nolint:errcheck // by design
+	log.Sync()
 }
 
 func init() {
@@ -94,6 +106,12 @@ func init() {
 		"enable-telemetry",
 		false,
 		"enables telemetry")
+	rootCmd.PersistentFlags().BoolVar(&config.EnableOtelLogger,
+		"enable-otel-logger",
+		false,
+		"if enabled, logs are written to zap and otel")
+	rootCmd.PersistentFlags().StringVar(&config.OtelOuput, "output", "stdout",
+		"output destination (stdout, grpc)")
 	rootCmd.PersistentFlags().StringVar(&config.TelemetryEndpoint,
 		"telemetry-endpoint",
 		"localhost:4317",
@@ -102,11 +120,23 @@ func init() {
 		"log-level",
 		"info",
 		"controls the log level (debug, info, warn, error, fatal)")
+	rootCmd.PersistentFlags().StringVar(&config.LogConfig,
+		"log-config",
+		"",
+		"configures the logger")
+	rootCmd.PersistentFlags().BoolVar(&useZap, "use-zap",
+		true,
+		"if true, use output from configured zap logger")
+	rootCmd.PersistentFlags().BoolVar(&removeContextFields, "remove-context-fields",
+		true,
+		"if true, don't log fields that contain a context.Context")
 
 	// add commands here
 
 	rootCmd.AddCommand(web.NewWebCommand())
 	rootCmd.AddCommand(sample.NewSampleCommand())
+
+	rootCmd.AddCommand(raw.NewRawOTLPCommand())
 }
 
 // initConfig reads in config file and ENV variables if set.

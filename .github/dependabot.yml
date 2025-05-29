@@ -40,7 +40,7 @@ updates:
       interval: "weekly"
       day: "saturday"
     groups:
-      github-actions:
+      images:
         dependency-type: "production"
     commit-message:
       prefix: "docker"

@@ -23,6 +23,12 @@ exporters:
   debug:
     verbosity: detailed
 
+  # this one converts the dots to underscores automatically
+  prometheusremotewrite:
+    endpoint: http://prometheus:9090/api/v1/write
+    tls:
+      insecure: true
+
   otlp/tempo:
     endpoint: "tempo:4317"
     tls:
@@ -31,6 +37,9 @@ exporters:
     endpoint: "http://loki:3100/otlp"
     tls:
       insecure: true
+  # this one does not convert the dots to underscores
+  # we would need some kind of transform processor to do that
+  # MP 2025-05-30
   otlphttp/prometheus:
     endpoint: http://prometheus:9090/api/v1/otlp
     tls:
@@ -50,7 +59,7 @@ service:
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, attributes/prometheus, batch]
-      exporters: [otlphttp/prometheus]
+      exporters: [prometheusremotewrite]
 
     logs:
       receivers: [otlp]

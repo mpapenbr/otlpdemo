@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	otlpruntime "go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -36,9 +37,10 @@ type (
 		downstream sdklog.Processor
 	}
 	config struct {
-		ctx       context.Context
-		output    TelemetryOutput
-		logConfig *logConfig
+		ctx          context.Context
+		output       TelemetryOutput
+		logConfig    *logConfig
+		runtimeStats bool // enable runtime stats collection
 	}
 	Telemetry struct {
 		config  *config
@@ -95,10 +97,17 @@ func WithTelemetryOutput(arg TelemetryOutput) TelemetryOption {
 	}
 }
 
+func WithRuntimeStats(arg bool) TelemetryOption {
+	return func(cfg *config) {
+		cfg.runtimeStats = arg
+	}
+}
+
 func SetupTelemetry(opts ...TelemetryOption) (*Telemetry, error) {
 	cfg := config{
-		ctx:    context.Background(),
-		output: Grpc,
+		ctx:          context.Background(),
+		output:       Grpc,
+		runtimeStats: true,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -115,6 +124,14 @@ func SetupTelemetry(opts ...TelemetryOption) (*Telemetry, error) {
 		return nil, err
 	}
 
+	if cfg.runtimeStats {
+		if err := otlpruntime.Start(
+			otlpruntime.WithMeterProvider(ret.metrics),
+			otlpruntime.WithMinimumReadMemStatsInterval(
+				otlpruntime.DefaultMinimumReadMemStatsInterval)); err != nil {
+			return nil, fmt.Errorf("could not start runtime stats: %w", err)
+		}
+	}
 	return &ret, nil
 }
 

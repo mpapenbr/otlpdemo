@@ -106,11 +106,8 @@ func init() {
 		"enable-telemetry",
 		false,
 		"enables telemetry")
-	rootCmd.PersistentFlags().BoolVar(&config.EnableOtelLogger,
-		"enable-otel-logger",
-		false,
-		"if enabled, logs are written to zap and otel")
-	rootCmd.PersistentFlags().StringVar(&config.OtelOuput, "output", "stdout",
+
+	rootCmd.PersistentFlags().StringVar(&config.OtelOuput, "otel-output", "stdout",
 		"output destination (stdout, grpc)")
 	rootCmd.PersistentFlags().StringVar(&config.TelemetryEndpoint,
 		"telemetry-endpoint",

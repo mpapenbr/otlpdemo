@@ -128,6 +128,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		span := trace.SpanFromContext(r.Context())
 		if span.SpanContext().HasTraceID() {
 			fields = append(fields,
+				log.Any("ctx", r.Context()),
 				log.String("trace_id", span.SpanContext().TraceID().String()))
 		}
 		log.Debug("Request received", fields...)

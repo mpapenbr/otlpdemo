@@ -2,7 +2,10 @@ package otel
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -22,6 +25,7 @@ import (
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"google.golang.org/grpc/credentials"
 
 	"github.com/mpapenbr/otlpdemo/version"
 )
@@ -224,7 +228,21 @@ func (t *Telemetry) setupLogs() (err error) {
 	case StdOut:
 		exporter, err = stdoutlog.New()
 	case Grpc:
-		exporter, err = otlploggrpc.New(t.config.ctx)
+		// need to build TLS config from environment variables as workaround
+		// see buildTLSConfig
+		var grpcExpOpt []otlploggrpc.Option
+		var tlsCfg *tls.Config
+		tlsCfg, err = buildTLSConfig()
+		if err != nil {
+			return fmt.Errorf("failed to build TLS config: %w", err)
+		}
+		if tlsCfg != nil {
+			grpcExpOpt = append(grpcExpOpt, otlploggrpc.WithTLSCredentials(
+				credentials.NewTLS(tlsCfg)))
+		} else {
+			grpcExpOpt = append(grpcExpOpt, otlploggrpc.WithInsecure())
+		}
+		exporter, err = otlploggrpc.New(t.config.ctx, grpcExpOpt...)
 	}
 	if err != nil {
 		return err
@@ -244,6 +262,54 @@ func (t *Telemetry) setupLogs() (err error) {
 	global.SetLoggerProvider(provider)
 	t.logs = provider
 	return nil
+}
+
+//nolint:unparam // false positive
+func getEnv(key, component string) string {
+	value := os.Getenv(fmt.Sprintf("OTEL_EXPORTER_OTLP_%s_%s", component, key))
+	if value != "" {
+		return value
+	}
+	return os.Getenv(fmt.Sprintf("OTEL_EXPORTER_OTLP_%s", key))
+}
+
+// build TLS config from OTEL_EXPORTER_OTLP env variables
+// this is a workaround for
+// https://github.com/open-telemetry/opentelemetry-go/issues/6661
+
+func buildTLSConfig() (*tls.Config, error) {
+	insecureEnv := getEnv("INSECURE", "LOGS")
+	caEnv := getEnv("CERTIFICATE", "LOGS")
+	keyEnv := getEnv("CLIENT_KEY", "LOGS")
+	certEnv := getEnv("CLIENT_CERTIFICATE", "LOGS")
+	//nolint:nestif // false positive
+	if caEnv == "" && keyEnv == "" && certEnv == "" && insecureEnv == "true" {
+		return nil, nil // no TLS configuration needed
+	} else {
+		tlsConfig := &tls.Config{
+			MinVersion: tls.VersionTLS13, // Set the minimum TLS version to TLS 1.3
+		}
+		if keyEnv != "" && certEnv != "" {
+			cert, err := tls.LoadX509KeyPair(certEnv, keyEnv)
+			if err != nil {
+				return nil, err
+			}
+			tlsConfig.Certificates = []tls.Certificate{cert}
+		}
+		if caEnv != "" {
+			caCert, err := os.ReadFile(caEnv)
+			if err != nil {
+				return nil, err
+			}
+			caCertPool := x509.NewCertPool()
+			if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
+				return nil, fmt.Errorf("failed to append server certificate")
+			}
+			// this is used on the client side to verify the server certificate
+			tlsConfig.RootCAs = caCertPool
+		}
+		return tlsConfig, nil
+	}
 }
 
 func initResource() *sdkresource.Resource {

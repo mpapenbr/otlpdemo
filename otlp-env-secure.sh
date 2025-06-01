@@ -1,0 +1,9 @@
+#!/bin/bash
+OTEL_EXPORTER_OTLP_ENDPOINT="https://localhost:4320"
+OTEL_EXPORTER_OTLP_CERTIFICATE=/workspaces/otlpdemo/certs/rootCA.pem
+OTEL_EXPORTER_OTLP_CLIENT_KEY=/workspaces/otlpdemo/certs/client.key
+OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE=/workspaces/otlpdemo/certs/client.crt
+#OTEL_TRACES_SAMPLER=parentbased_traceidratio
+OTEL_TRACES_SAMPLER=always_on
+OTEL_TRACES_SAMPLER_ARG=0.6
+OTEL_RESOURCE_ATTRIBUTES="service.name=otlpdemo,service.namespace=ide"

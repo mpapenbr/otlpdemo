@@ -44,9 +44,12 @@ services:
     #extra_hosts: ['host.docker.internal:host-gateway']
     volumes:
     - ./otel/config.yml:/etc/otel-collector-config.yml
+    - /workspaces/otlpdemo/certs:/certs:ro
     ports:
-    - "4317:4317"  # otlp gprc
-    - "4318:4318"  # otlp http
+    - "4317:4317"  # otlp gprc (insecure)
+    - "4318:4318"  # otlp http (insecure)
+    - "4319:4319"  # otlp grpc (tls)
+    - "4320:4320"  # otlp grpc (mtls)
     environment:
       TZ: "Europe/Berlin"
 

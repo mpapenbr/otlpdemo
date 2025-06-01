@@ -1,11 +1,28 @@
 receivers:
-  # Collect own metrics
+  # this is the default receiver for OTLP. Insecure for grpc + http.
   otlp:
     protocols:
       grpc:
         endpoint: otlp:4317 # use service name here
       http:
         endpoint: otlp:4318 # use service name here
+  # this is the receiver for OTLP over TLS.
+  otlp/tls:
+    protocols:
+      grpc:
+        endpoint: otlp:4319 # use service name here
+        tls:
+          cert_file: /certs/server.crt
+          key_file: /certs/server.key
+  # this is the receiver for OTLP with mTLS.
+  otlp/mtls:
+    protocols:
+      grpc:
+        endpoint: otlp:4320 # use service name here
+        tls:
+          client_ca_file: /certs/rootCA.pem
+          cert_file: /certs/server.crt
+          key_file: /certs/server.key
 
 processors:
   batch:

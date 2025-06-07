@@ -5,6 +5,7 @@
 
 # ensure the output directory exists
 mkdir -p certs/special
+mkdir -p certs/docker
 
 # $PASS contains the password in the form "pass:password"
 
@@ -64,3 +65,39 @@ openssl req -new -key certs/special/client.key -out certs/special/client.csr -su
 openssl x509 -req -in certs/special/client.csr -CA certs/special/clientRootCA.pem -CAkey certs/special/clientRootCA.key -CAcreateserial -out certs/special/client.crt \
  -days 365 -sha256 -copy_extensions copy  -passin $PASS
 
+
+# for mtls within docker compose setup we use dedicated certs
+
+# create rootCA private key
+openssl genpkey -algorithm RSA -out certs/docker/rootCA.key -aes256 -pass $PASS
+
+# self signed rootCA
+openssl req -x509 -new -nodes -key certs/docker/rootCA.key -sha256 -days 3650 -subj "/CN=otlpdemo docker root CA/O=otlpdemo docker" -passin $PASS -out certs/docker/rootCA.pem
+
+## server certificate
+
+# create server private key
+openssl genpkey -algorithm RSA -out certs/docker/server.key
+# create server certificate signing request
+openssl req -new -key certs/docker/server.key -out certs/docker/server.csr -subj "/CN=common docker cert/O=otlpdemo" \
+ -addext 'subjectAltName = DNS:prometheus, DNS:tempo, DNS:loki' \
+ -addext "keyUsage = digitalSignature, keyEncipherment" \
+ -addext "extendedKeyUsage = serverAuth"
+
+# sign server certificate
+openssl x509 -req -in certs/docker/server.csr -CA certs/docker/rootCA.pem -CAkey certs/docker/rootCA.key -CAcreateserial -out certs/docker/server.crt \
+ -days 365 -sha256 \
+ -copy_extensions copy \
+ -passin $PASS
+
+## client certificate
+
+# create client private key
+openssl genpkey -algorithm RSA -out certs/docker/client.key
+# create client certificate signing request
+openssl req -new -key certs/docker/client.key -out certs/docker/client.csr -subj "/CN=otlpclient/O=otlpdemo" \
+ -addext "keyUsage = digitalSignature, keyEncipherment" \
+ -addext "extendedKeyUsage = clientAuth"
+# sign client certificate
+openssl x509 -req -in certs/docker/client.csr -CA certs/docker/rootCA.pem -CAkey certs/docker/rootCA.key -CAcreateserial -out certs/docker/client.crt \
+ -days 365 -sha256 -copy_extensions copy  -passin $PASS

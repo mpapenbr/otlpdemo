@@ -1,4 +1,5 @@
 receivers:
+  # Note: a receiver is only active if it is referenced in a pipeline.
   # this is the default receiver for OTLP. Insecure for grpc + http.
   otlp:
     protocols:
@@ -42,18 +43,27 @@ exporters:
 
   # this one converts the dots to underscores automatically
   prometheusremotewrite:
-    endpoint: http://prometheus:9090/api/v1/write
+    endpoint: https://prometheus:9090/api/v1/write
     tls:
-      insecure: true
+      ca_file: /certs/docker/rootCA.pem
+      cert_file: /certs/docker/client.crt
+      key_file: /certs/docker/client.key
 
   otlp/tempo:
     endpoint: "tempo:4317"
     tls:
-      insecure: true
+      ca_file: /certs/docker/rootCA.pem
+      cert_file: /certs/docker/client.crt
+      key_file: /certs/docker/client.key
+
+  # Note: loki only supports OTLP over HTTP, not gRPC.
+  # see https://grafana.com/docs/loki/latest/send-data/otel/
   otlphttp/loki:
-    endpoint: "http://loki:3100/otlp"
+    endpoint: "https://loki:3100/otlp"
     tls:
-      insecure: true
+      ca_file: /certs/docker/rootCA.pem
+      cert_file: /certs/docker/client.crt
+      key_file: /certs/docker/client.key
   # this one does not convert the dots to underscores
   # we would need some kind of transform processor to do that
   # MP 2025-05-30
@@ -69,16 +79,16 @@ service:
 
   pipelines:
     traces:
-      receivers: [otlp]
+      receivers: [otlp, otlp/tls, otlp/mtls]
       processors: [memory_limiter, batch]
       exporters: [otlp/tempo, debug]
 
     metrics:
-      receivers: [otlp]
+      receivers: [otlp, otlp/tls, otlp/mtls]
       processors: [memory_limiter, attributes/prometheus, batch]
       exporters: [prometheusremotewrite]
 
     logs:
-      receivers: [otlp]
+      receivers: [otlp, otlp/tls, otlp/mtls]
       processors: [memory_limiter, batch]
       exporters: [otlphttp/loki, debug]

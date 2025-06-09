@@ -1,15 +1,3 @@
-x-logging: &default-logging
-  driver: loki
-  options:
-    loki-url: 'http://localhost:3100/api/prom/push'
-    loki-pipeline-stages: |
-      - multiline:
-          firstline: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}'
-          max_wait_time: 3s
-      - regex:
-          expression: '^(?P<date>\d{4}-\d{2}-\d{2}) (?P<time>\d{2}:\d{2}:\d{2}.\d{3}) (?P<message>(?s:.*))$$'
-
-
 
 services:
 
@@ -17,8 +5,11 @@ services:
     image: grafana/loki:3.5.1
     restart: unless-stopped
     ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+      - 3100
+    volumes:
+      - ./loki/local-config.yaml:/etc/loki/custom-local-config.yaml:ro
+      - ../certs:/certs:ro
+    command: -config.file=/etc/loki/custom-local-config.yaml
     networks:
       - monitoring
 
@@ -28,6 +19,7 @@ services:
     volumes:
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ../certs:/certs:ro
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
@@ -44,7 +36,7 @@ services:
     #extra_hosts: ['host.docker.internal:host-gateway']
     volumes:
     - ./otel/config.yml:/etc/otel-collector-config.yml
-    - /workspaces/otlpdemo/certs:/certs:ro
+    - ../certs:/certs:ro
     ports:
     - "4317:4317"  # otlp gprc (insecure)
     - "4318:4318"  # otlp http (insecure)
@@ -61,10 +53,12 @@ services:
     restart: unless-stopped
     environment:
       TZ: "Europe/Berlin"
-    # volumes:
-    #    - ./prometheus:/etc/prometheus/
+    volumes:
+       - ./prometheus:/etc/prometheus/
+       - ../certs:/certs:ro
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.config.file=/etc/prometheus/tls-config.yml'
       - '--web.enable-otlp-receiver'
       - '--web.enable-remote-write-receiver'
       - '--enable-feature=exemplar-storage'
@@ -73,7 +67,7 @@ services:
     networks:
       - monitoring
     ports:
-      - 9090:9090
+      - 9090
 
   tempo:
     image: grafana/tempo:2.7.2
@@ -82,12 +76,12 @@ services:
     command: [ "-config.file=/etc/tempo.yml" ]
     volumes:
         - ./tempo/tempo-local.yml:/etc/tempo.yml:ro
-        # - ./tempo-data:/tmp/tempo
+        - ../certs:/certs:ro
     ports:
       - "4317"
       - "3200"
-      #- "14268"  # jaeger ingest
-      #- "9411:9411" # zipkin
+      - "9095"
+
     networks:
       - monitoring
 

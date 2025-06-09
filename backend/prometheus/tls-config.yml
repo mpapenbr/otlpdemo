@@ -1,0 +1,5 @@
+tls_server_config:
+  cert_file: /certs/docker/server.crt
+  key_file: /certs/docker/server.key
+  client_ca_file: /certs/docker/rootCA.pem
+  client_auth_type: RequireAndVerifyClientCert

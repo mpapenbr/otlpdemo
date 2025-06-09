@@ -1,5 +1,13 @@
+stream_over_http_enabled: true
 server:
   http_listen_port: 3200
+  log_level: info
+  # added support for mTLS
+  http_tls_config:
+    cert_file: /certs/docker/server.crt
+    key_file: /certs/docker/server.key
+    client_ca_file: /certs/docker/rootCA.pem
+    client_auth_type: RequireAndVerifyClientCert
 
 distributor:
   receivers:
@@ -9,6 +17,10 @@ distributor:
           endpoint: "tempo:4318"
         grpc:
           endpoint: "tempo:4317"
+          tls:
+            cert_file: /certs/docker/server.crt
+            key_file: /certs/docker/server.key
+            client_ca_file: /certs/docker/rootCA.pem
 
 storage:
   trace:

@@ -14,7 +14,7 @@ import (
 )
 
 //nolint:nestif // false positive
-func BuildTLSConfig() (*tls.Config, error) {
+func BuildTLSConfigOld() (*tls.Config, error) {
 	if Insecure {
 		log.Debug("using insecure mode. no TLS")
 		return nil, nil
@@ -61,9 +61,66 @@ func BuildTLSConfig() (*tls.Config, error) {
 	}
 }
 
+func BuildServerTLSConfig() (*tls.Config, error) {
+	if Insecure {
+		log.Debug("using insecure mode. no TLS")
+		return nil, nil
+	} else {
+		reloader, err := NewTLSReloader(TLSCert, TLSKey, []string{TLSCa})
+		if err != nil {
+			log.Error("error creating TLS reloader", log.ErrorField(err))
+			return nil, err
+		}
+		go reloader.watch()
+		return &tls.Config{
+			MinVersion:         tls.VersionTLS13,
+			GetConfigForClient: reloader.GetConfigForClient,
+		}, nil
+	}
+}
+
+//nolint:nestif // false positive
+func BuildClientTLSConfig() (*tls.Config, error) {
+	if Insecure {
+		log.Debug("using insecure mode. no TLS")
+		return nil, nil
+	} else {
+		tlsConfig := &tls.Config{
+			MinVersion: tls.VersionTLS13, // Set the minimum TLS version to TLS 1.3
+		}
+		if TLSCert != "" && TLSKey != "" {
+			log.Debug("cert and key provided")
+			cert, err := tls.LoadX509KeyPair(TLSCert, TLSKey)
+			if err != nil {
+				return nil, err
+			}
+			tlsConfig.Certificates = []tls.Certificate{cert}
+		}
+		if TLSCa != "" {
+			log.Debug("ca provided")
+			caCert, err := os.ReadFile(TLSCa)
+			if err != nil {
+				return nil, err
+			}
+			caCertPool := x509.NewCertPool()
+			if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
+				return nil, fmt.Errorf("failed to append server certificate")
+			}
+			// this is used on the client side to verify the server certificate
+			tlsConfig.RootCAs = caCertPool
+		}
+
+		if TLSSkipVerify {
+			log.Debug("skipVerify enabled")
+			tlsConfig.InsecureSkipVerify = true
+		}
+		return tlsConfig, nil
+	}
+}
+
 // used for gRPC
 func BuildTransportCredentials() (credentials.TransportCredentials, error) {
-	myTLS, err := BuildTLSConfig()
+	myTLS, err := BuildServerTLSConfig()
 	if err != nil {
 		return nil, err
 	}

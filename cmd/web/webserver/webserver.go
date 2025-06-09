@@ -75,7 +75,7 @@ var tracer = otel.Tracer("webserver")
 //nolint:lll // readability
 func simpleWebserver() {
 	fmt.Printf("Starting server on %s\n", config.Address)
-	myTLS, err := config.BuildTLSConfig()
+	myTLS, err := config.BuildServerTLSConfig()
 	if err != nil {
 		log.Error("TLS config error", log.ErrorField(err))
 		return
@@ -167,7 +167,8 @@ func hello(myTLS *tls.Config) http.HandlerFunc {
 				msg,
 				len(r.TLS.PeerCertificates))
 		}
-		switch myTLS.ClientAuth {
+		clientAuth, _ := config.ParseClientAuth(config.TLSClientAuth)
+		switch clientAuth {
 		case tls.NoClientCert:
 			fmt.Fprint(w, "Hello, world! (no client cert required)\n")
 

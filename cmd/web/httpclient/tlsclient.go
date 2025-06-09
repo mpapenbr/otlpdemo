@@ -27,7 +27,7 @@ func NewTLSClientCommand() *cobra.Command {
 }
 
 func queryWithTLS() {
-	myTLS, err := config.BuildTLSConfig()
+	myTLS, err := config.BuildClientTLSConfig()
 	if err != nil {
 		log.Error("TLS config error", log.ErrorField(err))
 		return

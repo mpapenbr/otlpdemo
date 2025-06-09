@@ -37,7 +37,7 @@ func NewSimpleGRPCClientCommand() *cobra.Command {
 //nolint:funlen // ok by design
 func simpleGRPCClient() {
 	fmt.Printf("Starting gRPC connection to %s\n", config.Address)
-	myTLS, err := config.BuildTLSConfig()
+	myTLS, err := config.BuildClientTLSConfig()
 	if err != nil {
 		log.Error("TLS config error", log.ErrorField(err))
 		return

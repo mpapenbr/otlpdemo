@@ -2,9 +2,6 @@ package config
 
 import (
 	"crypto/tls"
-	"crypto/x509"
-	"errors"
-	"os"
 	"path/filepath"
 	"sync"
 
@@ -14,23 +11,25 @@ import (
 )
 
 type TLSReloader struct {
-	certPath string
-	keyPath  string
-	caPaths  []string
+	certPath      string
+	keyPath       string
+	caPaths       []string
+	clientCAPaths []string
 
 	mu        sync.RWMutex
 	tlsConfig *tls.Config
 }
 
 //nolint:whitespace //editor/linter issue
-func NewTLSReloader(certPath, keyPath string, caPaths []string) (
+func NewTLSReloader() (
 	*TLSReloader,
 	error,
 ) {
 	r := &TLSReloader{
-		certPath: certPath,
-		keyPath:  keyPath,
-		caPaths:  caPaths,
+		certPath:      TLSCert,
+		keyPath:       TLSKey,
+		caPaths:       TLSCAs,
+		clientCAPaths: TLSClientCAs,
 	}
 	if err := r.reload(); err != nil {
 		return nil, err
@@ -40,47 +39,9 @@ func NewTLSReloader(certPath, keyPath string, caPaths []string) (
 
 //nolint:funlen,nestif // by design
 func (r *TLSReloader) reload() error {
-	newCfg := &tls.Config{
-		MinVersion: tls.VersionTLS13,
-	}
-	if r.certPath != "" && r.keyPath != "" {
-		log.Debug("cert and key provided")
-		cert, err := tls.LoadX509KeyPair(r.certPath, r.keyPath)
-		if err != nil {
-			return err
-		}
-		newCfg.Certificates = []tls.Certificate{cert}
-	}
-
-	if len(r.caPaths) > 0 {
-		caPool := x509.NewCertPool()
-		for _, path := range r.caPaths {
-			if path != "" {
-				log.Debug("ca provided", log.String("path", path))
-				caBytes, err := os.ReadFile(path)
-				if err != nil {
-					return err
-				}
-				if !caPool.AppendCertsFromPEM(caBytes) {
-					return errors.New("invalid client CA in: " + path)
-				}
-			}
-		}
-		newCfg.ClientCAs = caPool
-	}
-
-	if TLSClientAuth != "" {
-		log.Debug("clientAuth provided")
-		var clientAuth tls.ClientAuthType
-		clientAuth, err := ParseClientAuth(TLSClientAuth)
-		if err != nil {
-			return err
-		}
-		newCfg.ClientAuth = clientAuth
-	}
-	if TLSSkipVerify {
-		log.Debug("skipVerify enabled")
-		newCfg.InsecureSkipVerify = true
+	newCfg, err := buildTLSFromConfig()
+	if err != nil {
+		return err
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -110,6 +71,10 @@ func (r *TLSReloader) watch() {
 	}
 	for _, caPath := range r.caPaths {
 		watchPaths[filepath.Dir(caPath)] = struct{}{}
+	}
+
+	for _, clientCAPath := range r.clientCAPaths {
+		watchPaths[filepath.Dir(clientCAPath)] = struct{}{}
 	}
 
 	for dir := range watchPaths {

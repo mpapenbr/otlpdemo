@@ -16,6 +16,10 @@ func NewWebCommand() *cobra.Command {
 		Short: "collection of web commands",
 		Long:  ``,
 	}
+	cmd.PersistentFlags().StringVar(&config.TLSMinVersion,
+		"tls-min-version",
+		"tls13",
+		"minimum TLS version (e.g., tls13, tls12)")
 	cmd.PersistentFlags().BoolVar(&config.TLSSkipVerify,
 		"tls-skip-verify",
 		false,
@@ -28,23 +32,28 @@ func NewWebCommand() *cobra.Command {
 		"tls-cert",
 		"",
 		"path to TLS cert")
-	cmd.PersistentFlags().StringVar(&config.TLSCa,
+	cmd.PersistentFlags().StringSliceVar(&config.TLSCAs,
 		"tls-ca",
-		"",
-		"path to TLS root certificate")
-	cmd.PersistentFlags().BoolVar(&config.Insecure,
-		"insecure",
-		true,
-		"don't use TLS (used for development only)")
+		[]string{},
+		"path to TLS CA certificate to validate server certificate")
+	cmd.PersistentFlags().StringSliceVar(&config.TLSClientCAs,
+		"tls-client-ca",
+		[]string{},
+		"path to TLS CA certificate to validate client certificate")
 	cmd.PersistentFlags().StringVar(&config.TLSClientAuth,
 		"tls-client-auth",
 		"",
 		"how to handle the client cert (none, request, require-and-verify, verify-if-given)")
+	cmd.PersistentFlags().BoolVar(&config.Insecure,
+		"insecure",
+		true,
+		"don't use TLS (used for development only)")
 
 	cmd.AddCommand(httpclient.NewJSONPlaceholderCommand())
 	cmd.AddCommand(httpclient.NewTLSClientCommand())
 	cmd.AddCommand(webserver.NewSimpleWebserverCommand())
 	cmd.AddCommand(grpcserver.NewSimpleGRPCServerCommand())
 	cmd.AddCommand(grpcclient.NewSimpleGRPCClientCommand())
+
 	return &cmd
 }

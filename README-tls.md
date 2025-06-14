@@ -53,7 +53,7 @@ In the current setup we assume that client and server certs share the same CA `c
 ### Server
 
 ```console
-go run main.go web webserver --insecure=false --tls-key certs/server.key --tls-cert certs/server.crt --tls-ca certs/rootCA.pem --tls-client-auth require-and-verify
+go run main.go web webserver --insecure=false --tls-key certs/server.key --tls-cert certs/server.crt --tls-client-ca certs/rootCA.pem --tls-client-auth require-and-verify
 ```
 
 ### Client
@@ -73,7 +73,7 @@ In this example we use a separate CA for the client certs. These are store in [c
 The server needs to know the CA for the client certs via the `--tls-ca` parameter
 
 ```console
-go run main.go web webserver --insecure=false --tls-key certs/server.key --tls-cert certs/server.crt --tls-ca certs/special/clientRootCA.pem --tls-client-auth require-and-verify
+go run main.go web webserver --insecure=false --tls-key certs/server.key --tls-cert certs/server.crt --tls-client-ca certs/special/clientRootCA.pem --tls-client-auth require-and-verify
 ```
 
 ### Client

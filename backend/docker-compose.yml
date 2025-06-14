@@ -30,7 +30,7 @@ services:
       - 3000:3000
 
   otlp:
-    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.127.0
+    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.128.0
     command: ["--config=/etc/otel-collector-config.yml"]
     restart: unless-stopped
     #extra_hosts: ['host.docker.internal:host-gateway']
@@ -70,7 +70,7 @@ services:
       - 9090
 
   tempo:
-    image: grafana/tempo:2.7.2
+    image: grafana/tempo:2.8.0
     #extra_hosts: ['host.docker.internal:host-gateway']
     restart: unless-stopped
     command: [ "-config.file=/etc/tempo.yml" ]

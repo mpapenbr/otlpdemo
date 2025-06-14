@@ -28,7 +28,7 @@ func NewLogEmitCommand() *cobra.Command {
 func doLogEmit() error {
 	ctx := context.Background()
 	t, err := otel.SetupTelemetry(
-		otel.WithTelemetryOutput(otel.ParseTelemetryOutput(config.OtelOuput)),
+		otel.WithTelemetryOutput(otel.ParseTelemetryOutput(config.OtelOutput)),
 		otel.WithTelemetryContext(ctx),
 	)
 	if err != nil {

@@ -56,7 +56,7 @@ var rootCmd = &cobra.Command{
 		if config.EnableTelemetry {
 			var err error
 			if telemetry, err = otel.SetupTelemetry(
-				otel.WithTelemetryOutput(otel.ParseTelemetryOutput(config.OtelOuput)),
+				otel.WithTelemetryOutput(otel.ParseTelemetryOutput(config.OtelOutput)),
 			); err != nil {
 				log.Error("Could not setup telemetry", log.ErrorField(err))
 			}
@@ -107,7 +107,7 @@ func init() {
 		false,
 		"enables telemetry")
 
-	rootCmd.PersistentFlags().StringVar(&config.OtelOuput, "otel-output", "stdout",
+	rootCmd.PersistentFlags().StringVar(&config.OtelOutput, "otel-output", "stdout",
 		"output destination (stdout, grpc)")
 	rootCmd.PersistentFlags().StringVar(&config.TelemetryEndpoint,
 		"telemetry-endpoint",

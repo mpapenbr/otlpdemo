@@ -34,7 +34,7 @@ Note: If you see messages in loki that shouldn't be there, check the setup in ro
 func doOtelZapLog() error {
 	ctx := context.Background()
 	t, err := otel.SetupTelemetry(
-		otel.WithTelemetryOutput(otel.ParseTelemetryOutput(config.OtelOuput)),
+		otel.WithTelemetryOutput(otel.ParseTelemetryOutput(config.OtelOutput)),
 		otel.WithTelemetryContext(ctx),
 	)
 	if err != nil {

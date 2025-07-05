@@ -8,16 +8,16 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.20.1
-	go.opentelemetry.io/contrib/bridges/otelzap v0.11.0
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0
-	go.opentelemetry.io/contrib/instrumentation/runtime v0.61.0
-	go.opentelemetry.io/contrib/processors/minsev v0.9.0
-	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.12.2
+	go.opentelemetry.io/contrib/bridges/otelzap v0.12.0
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.62.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0
+	go.opentelemetry.io/contrib/instrumentation/runtime v0.62.0
+	go.opentelemetry.io/contrib/processors/minsev v0.10.0
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.13.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.37.0
-	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.12.2
-	go.opentelemetry.io/otel/log v0.12.2
-	go.opentelemetry.io/otel/sdk/log v0.12.2
+	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.13.0
+	go.opentelemetry.io/otel/log v0.13.0
+	go.opentelemetry.io/otel/sdk/log v0.13.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.73.0
 	moul.io/zapfilter v1.7.0

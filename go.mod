@@ -19,7 +19,7 @@ require (
 	go.opentelemetry.io/otel/log v0.13.0
 	go.opentelemetry.io/otel/sdk/log v0.13.0
 	go.uber.org/zap v1.27.0
-	google.golang.org/grpc v1.73.0
+	google.golang.org/grpc v1.74.2
 	moul.io/zapfilter v1.7.0
 )
 

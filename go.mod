@@ -1,6 +1,6 @@
 module github.com/mpapenbr/otlpdemo
 
-go 1.24
+go 1.25
 
 require (
 	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.5.1-20240225081811-660e50fef482.2

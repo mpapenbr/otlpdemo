@@ -47,7 +47,8 @@ func simpleGRPCserver() {
 		return
 	}
 
-	lis, err := net.Listen("tcp", config.Address)
+	var l net.ListenConfig
+	lis, err := l.Listen(context.Background(), "tcp", config.Address)
 	if err != nil {
 		log.Error("error starting listener", log.ErrorField(err))
 		return

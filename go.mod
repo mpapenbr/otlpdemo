@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.5.1-20240225081811-660e50fef482.2
-	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.7-20240225081811-660e50fef482.1
+	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.8-20240225081811-660e50fef482.1
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.7
 	github.com/spf13/viper v1.20.1
@@ -19,7 +19,7 @@ require (
 	go.opentelemetry.io/otel/log v0.13.0
 	go.opentelemetry.io/otel/sdk/log v0.13.0
 	go.uber.org/zap v1.27.0
-	google.golang.org/grpc v1.74.2
+	google.golang.org/grpc v1.75.0
 	moul.io/zapfilter v1.7.0
 )
 
@@ -34,9 +34,9 @@ require (
 	go.opentelemetry.io/proto/otlp v1.7.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	google.golang.org/genproto v0.0.0-20250519155744-55703ea1f237 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
-	google.golang.org/protobuf v1.36.7 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
+	google.golang.org/protobuf v1.36.8 // indirect
 )
 
 require (

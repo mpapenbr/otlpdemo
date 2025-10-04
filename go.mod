@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.5.1-20240225081811-660e50fef482.2
-	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.9-20240225081811-660e50fef482.1
+	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.10-20240225081811-660e50fef482.1
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
@@ -37,7 +37,7 @@ require (
 	google.golang.org/genproto v0.0.0-20250519155744-55703ea1f237 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250825161204-c5933d9347a5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250825161204-c5933d9347a5 // indirect
-	google.golang.org/protobuf v1.36.9 // indirect
+	google.golang.org/protobuf v1.36.10 // indirect
 )
 
 require (

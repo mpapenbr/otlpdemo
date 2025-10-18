@@ -2,7 +2,7 @@
 services:
 
   loki:
-    image: grafana/loki:3.5.6
+    image: grafana/loki:3.5.7
     restart: unless-stopped
     ports:
       - 3100
@@ -49,7 +49,7 @@ services:
       - monitoring
 
   prometheus:
-    image: prom/prometheus:v3.6.0
+    image: prom/prometheus:v3.7.1
     restart: unless-stopped
     environment:
       TZ: "Europe/Berlin"
@@ -70,7 +70,7 @@ services:
       - 9090
 
   tempo:
-    image: grafana/tempo:2.8.2
+    image: grafana/tempo:2.9.0
     #extra_hosts: ['host.docker.internal:host-gateway']
     restart: unless-stopped
     command: [ "-config.file=/etc/tempo.yml" ]

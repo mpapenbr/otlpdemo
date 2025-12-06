@@ -3,9 +3,9 @@ module github.com/mpapenbr/otlpdemo
 go 1.25
 
 require (
-	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.5.1-20240225081811-660e50fef482.2
+	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.6.0-20240225081811-660e50fef482.1
 	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.10-20240225081811-660e50fef482.1
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	go.opentelemetry.io/contrib/bridges/otelzap v0.13.0

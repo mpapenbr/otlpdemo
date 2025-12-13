@@ -114,8 +114,8 @@ func simpleWebserver() {
 }
 
 func addToMux(mux *http.ServeMux, pattern string, handler http.Handler) {
-	mux.Handle(pattern, otelhttp.WithRouteTag(pattern,
-		TraceIDMiddleware(LoggingMiddleware(handler))))
+	mux.Handle(pattern,
+		TraceIDMiddleware(LoggingMiddleware(handler)))
 }
 
 func LoggingMiddleware(next http.Handler) http.Handler {

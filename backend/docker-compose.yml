@@ -2,7 +2,7 @@
 services:
 
   loki:
-    image: grafana/loki:3.6.2
+    image: grafana/loki:3.6.3
     restart: unless-stopped
     ports:
       - 3100

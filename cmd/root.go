@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/mpapenbr/otlpdemo/cmd/config"
+	"github.com/mpapenbr/otlpdemo/cmd/db"
 	"github.com/mpapenbr/otlpdemo/cmd/raw"
 	"github.com/mpapenbr/otlpdemo/cmd/sample"
 	"github.com/mpapenbr/otlpdemo/cmd/web"
@@ -134,6 +135,8 @@ func init() {
 	rootCmd.AddCommand(sample.NewSampleCommand())
 
 	rootCmd.AddCommand(raw.NewRawOTLPCommand())
+
+	rootCmd.AddCommand(db.NewDBCommand())
 }
 
 // initConfig reads in config file and ENV variables if set.

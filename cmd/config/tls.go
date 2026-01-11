@@ -13,6 +13,8 @@ import (
 	"github.com/mpapenbr/otlpdemo/log"
 )
 
+type TLSConfigOption func(*tls.Config)
+
 func BuildServerTLSConfig() (*tls.Config, error) {
 	if Insecure {
 		log.Debug("using insecure mode. no TLS")
@@ -32,12 +34,12 @@ func BuildServerTLSConfig() (*tls.Config, error) {
 }
 
 //nolint:nestif // false positive
-func BuildClientTLSConfig() (*tls.Config, error) {
+func BuildClientTLSConfig(opts ...TLSConfigOption) (*tls.Config, error) {
 	if Insecure {
 		log.Debug("using insecure mode. no TLS")
 		return nil, nil
 	} else {
-		return buildTLSFromConfig()
+		return buildTLSFromConfig(opts...)
 	}
 }
 
@@ -84,7 +86,7 @@ func ParseTLSVersion(mode string) (uint16, error) {
 }
 
 //nolint:funlen // by design
-func buildTLSFromConfig() (*tls.Config, error) {
+func buildTLSFromConfig(opts ...TLSConfigOption) (*tls.Config, error) {
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS13,
 	}
@@ -146,6 +148,10 @@ func buildTLSFromConfig() (*tls.Config, error) {
 	if TLSSkipVerify {
 		log.Debug("skipVerify enabled")
 		tlsConfig.InsecureSkipVerify = true
+	}
+	// apply optional additional options
+	for _, opt := range opts {
+		opt(tlsConfig)
 	}
 	return tlsConfig, nil
 }

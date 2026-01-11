@@ -2,6 +2,9 @@ package httpclient
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/hex"
 	"io"
 	"net/http"
 
@@ -26,8 +29,27 @@ func NewTLSClientCommand() *cobra.Command {
 	return &cmd
 }
 
+//nolint:funlen // lots of stuff to do here
 func queryWithTLS() {
-	myTLS, err := config.BuildClientTLSConfig()
+	myTLS, err := config.BuildClientTLSConfig(
+		func(c *tls.Config) {
+			//nolint:whitespace // editor/linter issue
+			c.VerifyPeerCertificate = func(
+				rawCerts [][]byte,
+				verifiedChains [][]*x509.Certificate,
+			) error {
+				log.Debug("custom certificate verification called")
+				cert, err := x509.ParseCertificate(rawCerts[0])
+				if err != nil {
+					return err
+				}
+
+				log.Debug("Cert info", log.String("sn",
+					hex.EncodeToString(cert.SerialNumber.Bytes())))
+				return nil
+			}
+		},
+	)
 	if err != nil {
 		log.Error("TLS config error", log.ErrorField(err))
 		return

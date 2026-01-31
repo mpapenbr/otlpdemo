@@ -14,7 +14,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:12.3.1
+    image: grafana/grafana:12.3.2
     restart: unless-stopped
     volumes:
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
@@ -70,7 +70,7 @@ services:
       - 9090
 
   tempo:
-    image: grafana/tempo:2.9.1
+    image: grafana/tempo:2.10.0
     #extra_hosts: ['host.docker.internal:host-gateway']
     restart: unless-stopped
     command: [ "-config.file=/etc/tempo.yml" ]

@@ -2,7 +2,7 @@
 services:
 
   loki:
-    image: grafana/loki:3.6.4
+    image: grafana/loki:3.6.5
     restart: unless-stopped
     ports:
       - 3100
@@ -30,7 +30,7 @@ services:
       - 3000:3000
 
   otlp:
-    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.144.0
+    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.145.0
     command: ["--config=/etc/otel-collector-config.yml"]
     restart: unless-stopped
     #extra_hosts: ['host.docker.internal:host-gateway']

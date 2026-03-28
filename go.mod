@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.6.1-20240225081811-660e50fef482.1
 	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.11-20240225081811-660e50fef482.1
-	github.com/jackc/pgx/v5 v5.8.0
+	github.com/jackc/pgx/v5 v5.9.1
 	github.com/samber/lo v1.53.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10

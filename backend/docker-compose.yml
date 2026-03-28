@@ -2,7 +2,7 @@
 services:
 
   loki:
-    image: grafana/loki:3.6.7
+    image: grafana/loki:3.7.1
     restart: unless-stopped
     ports:
       - 3100
@@ -14,7 +14,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:12.4.1
+    image: grafana/grafana:12.4.2
     restart: unless-stopped
     volumes:
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro

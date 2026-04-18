@@ -14,7 +14,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:12.4.2
+    image: grafana/grafana:13.0.1
     restart: unless-stopped
     volumes:
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
@@ -30,7 +30,7 @@ services:
       - 3000:3000
 
   otlp:
-    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.149.0
+    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.150.1
     command: ["--config=/etc/otel-collector-config.yml"]
     restart: unless-stopped
     #extra_hosts: ['host.docker.internal:host-gateway']
@@ -49,7 +49,7 @@ services:
       - monitoring
 
   prometheus:
-    image: prom/prometheus:v3.11.0
+    image: prom/prometheus:v3.11.2
     restart: unless-stopped
     environment:
       TZ: "Europe/Berlin"
@@ -70,7 +70,7 @@ services:
       - 9090
 
   tempo:
-    image: grafana/tempo:2.10.3
+    image: grafana/tempo:2.10.4
     #extra_hosts: ['host.docker.internal:host-gateway']
     restart: unless-stopped
     command: [ "-config.file=/etc/tempo.yml" ]

@@ -3,7 +3,7 @@ module github.com/mpapenbr/otlpdemo
 go 1.25.0
 
 require (
-	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.6.1-20240225081811-660e50fef482.1
+	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.6.2-20240225081811-660e50fef482.1
 	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.11-20240225081811-660e50fef482.1
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/samber/lo v1.53.0
@@ -21,7 +21,7 @@ require (
 	go.opentelemetry.io/otel/log v0.19.0
 	go.opentelemetry.io/otel/sdk/log v0.19.0
 	go.uber.org/zap v1.28.0
-	google.golang.org/grpc v1.81.0
+	google.golang.org/grpc v1.81.1
 	moul.io/zapfilter v1.7.0
 )
 

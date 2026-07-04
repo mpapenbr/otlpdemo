@@ -49,7 +49,7 @@ exporters:
       cert_file: /certs/docker/client.crt
       key_file: /certs/docker/client.key
 
-  otlp/tempo:
+  otlp_grpc/tempo:
     endpoint: "tempo:4317"
     tls:
       ca_file: /certs/docker/rootCA.pem
@@ -58,7 +58,7 @@ exporters:
 
   # Note: loki only supports OTLP over HTTP, not gRPC.
   # see https://grafana.com/docs/loki/latest/send-data/otel/
-  otlphttp/loki:
+  otlp_http/loki:
     endpoint: "https://loki:3100/otlp"
     tls:
       ca_file: /certs/docker/rootCA.pem
@@ -67,7 +67,7 @@ exporters:
   # this one does not convert the dots to underscores
   # we would need some kind of transform processor to do that
   # MP 2025-05-30
-  otlphttp/prometheus:
+  otlp_http/prometheus:
     endpoint: http://prometheus:9090/api/v1/otlp
     tls:
       insecure: true
@@ -81,7 +81,7 @@ service:
     traces:
       receivers: [otlp, otlp/tls, otlp/mtls]
       processors: [memory_limiter, batch]
-      exporters: [otlp/tempo, debug]
+      exporters: [otlp_grpc/tempo, debug]
 
     metrics:
       receivers: [otlp, otlp/tls, otlp/mtls]
@@ -91,4 +91,4 @@ service:
     logs:
       receivers: [otlp, otlp/tls, otlp/mtls]
       processors: [memory_limiter, batch]
-      exporters: [otlphttp/loki, debug]
+      exporters: [otlp_http/loki, debug]

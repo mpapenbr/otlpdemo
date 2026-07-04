@@ -10,6 +10,12 @@ When enabling telemetry via `--enable-telemetry` the configuration and extra dat
 
 See the [base config](./otlp-env.env) for a simple configuration without TLS and the [advanced config](./otlp-env-secure.env) for connections with mTLS.
 
+Example: Add the env vars to the current shell
+
+```console
+set -a && source otlp-env.env && set +a
+```
+
 ### Configuration
 
 A lot of configuration can be provided via environment variables. These start with the prefix `OTEL_`.

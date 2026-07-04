@@ -1,5 +1,46 @@
+# based from https://github.com/grafana/tempo/blob/main/example/docker-compose/single-binary/tempo.yaml
+# full config options: https://grafana.com/docs/tempo/latest/configuration/
+
 stream_over_http_enabled: true
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: tempo:4317
+          # added support for mTLS
+          tls:
+            cert_file: /certs/docker/server.crt
+            key_file: /certs/docker/server.key
+            client_ca_file: /certs/docker/rootCA.pem
+        http:
+          endpoint: tempo:4318
+memberlist:
+  bind_addr:
+    - 127.0.0.1
+  bind_port: 7947
+metrics_generator:
+  processor:
+    span_metrics:
+      dimensions:
+        - service_name
+        - operation
+        - status_code
+  storage:
+    path: /tmp/tempo/generator/wal
+    remote_write:
+      - send_exemplars: true
+        url: https://prometheus:9090/api/v1/write
+        tls_config:
+          ca_file: /certs/docker/rootCA.pem
+          cert_file: /certs/docker/client.crt
+          key_file: /certs/docker/client.key
+
+querier:
+  frontend_worker:
+    frontend_address: 127.0.0.1:9096
 server:
+  grpc_listen_port: 9096
   http_listen_port: 3200
   log_level: info
   # added support for mTLS
@@ -8,22 +49,10 @@ server:
     key_file: /certs/docker/server.key
     client_ca_file: /certs/docker/rootCA.pem
     client_auth_type: RequireAndVerifyClientCert
-
-distributor:
-  receivers:
-    otlp:
-      protocols:
-        http:
-          endpoint: "tempo:4318"
-        grpc:
-          endpoint: "tempo:4317"
-          tls:
-            cert_file: /certs/docker/server.crt
-            key_file: /certs/docker/server.key
-            client_ca_file: /certs/docker/rootCA.pem
-
 storage:
   trace:
     backend: local
     local:
       path: /tmp/tempo/blocks
+    wal:
+      path: /tmp/tempo/wal

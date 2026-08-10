@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/global"
 
@@ -59,6 +60,6 @@ func createRecord(msg string) log.Record {
 	var r log.Record
 	r.SetTimestamp(time.Now())
 	r.SetSeverity(log.SeverityInfo)
-	r.SetBody(log.StringValue(msg))
+	r.SetBody(attribute.StringValue(msg))
 	return r
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
 	otellog "go.opentelemetry.io/otel/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -52,7 +53,7 @@ func (c *ZapWithOTLP) createRecord(msg string) otellog.Record {
 	var r otellog.Record
 	r.SetTimestamp(time.Now())
 	r.SetSeverity(otellog.SeverityInfo)
-	r.SetBody(otellog.StringValue(msg))
+	r.SetBody(attribute.StringValue(msg))
 	return r
 }
 

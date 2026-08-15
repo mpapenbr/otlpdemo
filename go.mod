@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.6.2-20240225081811-660e50fef482.1
-	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.11-20240225081811-660e50fef482.1
+	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.12-20240225081811-660e50fef482.1
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/samber/lo v1.53.0
 	github.com/spf13/cobra v1.10.2
@@ -44,7 +44,7 @@ require (
 	google.golang.org/genproto v0.0.0-20250519155744-55703ea1f237 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260803160001-6ac0973c030d // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260803160001-6ac0973c030d // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 )
 
 require (

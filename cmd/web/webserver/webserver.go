@@ -92,7 +92,8 @@ func simpleWebserver() {
 	mainHander := otelhttp.NewHandler(mux, "oteldemo-webserver",
 		otelhttp.WithMessageEvents(
 			otelhttp.ReadEvents,
-			otelhttp.WriteEvents))
+			otelhttp.WriteEvents,
+		))
 	if config.Insecure {
 		log.Info("Using insecure mode with http")
 		if err = http.ListenAndServe(config.Address, mainHander); err != nil {
@@ -229,7 +230,8 @@ func relayConcurrent() http.HandlerFunc {
 		wg := &sync.WaitGroup{}
 		wg.Add(len(items))
 		span.AddEvent("spawning go routines", trace.WithAttributes(
-			attribute.Int("count", len(items))))
+			attribute.Int("count", len(items)),
+		))
 		for _, item := range items {
 			go func(item itemType) {
 				defer wg.Done()
@@ -275,7 +277,8 @@ func fetchWithErrorRate(ctx context.Context, item itemType) {
 	} else {
 		span.AddEvent("picked", trace.WithAttributes(
 			attribute.String("item", c.Name),
-			attribute.Int("id", idx)))
+			attribute.Int("id", idx),
+		))
 	}
 	//nolint:errcheck // dummy
 	doCall(spanCtx,
@@ -290,7 +293,8 @@ func doCall(ctx context.Context, url, operation string) (ret []byte, err error) 
 		ctx,
 		http.MethodGet,
 		url,
-		http.NoBody)
+		http.NoBody,
+	)
 	if err != nil {
 		span.RecordError(err)
 		return nil, err

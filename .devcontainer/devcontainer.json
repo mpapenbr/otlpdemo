@@ -3,7 +3,7 @@
 {
   "name": "Go",
 
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "image": "mcr.microsoft.com/devcontainers/go:2-1.27",
   "runArgs": [
     "--cap-add=SYS_PTRACE",
     "--security-opt",
@@ -56,9 +56,9 @@
   // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "vscode",
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker": "latest",
-    "ghcr.io/devcontainers/features/go": {
-      "version": "1.25"
-    }
+    "ghcr.io/devcontainers/features/docker-in-docker:3": {
+      "moby": false
+    },
+    "ghcr.io/jungaretti/features/ripgrep:1": {}
   }
 }

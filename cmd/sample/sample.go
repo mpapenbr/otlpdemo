@@ -101,6 +101,6 @@ func doit(apiCounter metric.Int64Counter, apiDuration metric.Float64Histogram) e
 	}
 
 	apiCounter.Add(myCtx, 1)
-	apiDuration.Record(myCtx, (time.Since(start)).Seconds())
+	apiDuration.Record(myCtx, time.Since(start).Seconds())
 	return nil
 }

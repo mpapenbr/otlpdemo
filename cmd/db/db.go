@@ -125,7 +125,9 @@ func createPool(conf config.DBConfig) (*pgxpool.Pool, error) {
 			}),
 			func(k, v string) string {
 				return fmt.Sprintf("%s=%s", k, v)
-			}), " ")
+			},
+		), " ",
+	)
 
 	// Parse the config from connection string
 	poolCfg, poolErr := pgxpool.ParseConfig(connStr)
@@ -290,7 +292,8 @@ func (db *demoDB) simLongRunningQuery(d time.Duration) {
 		var username string
 		err := c.QueryRow(
 			context.Background(),
-			"select now(),current_user").Scan(&now, &username)
+			"select now(),current_user",
+		).Scan(&now, &username)
 		if err != nil {
 			log.Error("query failed", log.ErrorField(err))
 			return

@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/log"
-	"go.opentelemetry.io/otel/log/global"
 
 	"github.com/mpapenbr/otlpdemo/cmd/config"
-	"github.com/mpapenbr/otlpdemo/otel"
+	myOtel "github.com/mpapenbr/otlpdemo/otel"
 )
 
 func NewLogEmitCommand() *cobra.Command {
@@ -28,16 +28,16 @@ func NewLogEmitCommand() *cobra.Command {
 
 func doLogEmit() error {
 	ctx := context.Background()
-	t, err := otel.SetupTelemetry(
-		otel.WithTelemetryOutput(otel.ParseTelemetryOutput(config.OtelOutput)),
-		otel.WithTelemetryContext(ctx),
+	t, err := myOtel.SetupTelemetry(
+		myOtel.WithTelemetryOutput(myOtel.ParseTelemetryOutput(config.OtelOutput)),
+		myOtel.WithTelemetryContext(ctx),
 	)
 	if err != nil {
 		return fmt.Errorf("could not setup telemetry: %w", err)
 	}
 
 	fmt.Println("doLogtest")
-	logger := global.GetLoggerProvider().Logger("testlogger")
+	logger := otel.GetLoggerProvider().Logger("testlogger")
 
 	// Emit a log
 	r := createRecord("test message")

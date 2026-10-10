@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/log/global"
+	"go.opentelemetry.io/otel"
 
 	"github.com/mpapenbr/otlpdemo/cmd/config"
 	"github.com/mpapenbr/otlpdemo/log"
-	"github.com/mpapenbr/otlpdemo/otel"
+	myOtel "github.com/mpapenbr/otlpdemo/otel"
 )
 
 func NewZapContextCommand() *cobra.Command {
@@ -26,14 +26,14 @@ func NewZapContextCommand() *cobra.Command {
 
 func doZapContextLog() error {
 	ctx := context.Background()
-	t, err := otel.SetupTelemetry(
-		otel.WithTelemetryOutput(otel.ParseTelemetryOutput(config.OtelOutput)),
-		otel.WithTelemetryContext(ctx),
+	t, err := myOtel.SetupTelemetry(
+		myOtel.WithTelemetryOutput(myOtel.ParseTelemetryOutput(config.OtelOutput)),
+		myOtel.WithTelemetryContext(ctx),
 	)
 	if err != nil {
 		return fmt.Errorf("could not setup telemetry: %w", err)
 	}
-	logger, _ := log.NewZapWithContextBasedOTLP(global.GetLoggerProvider())
+	logger, _ := log.NewZapWithContextBasedOTLP(otel.GetLoggerProvider())
 
 	logger.Info("standard zapcontext message without context")
 

@@ -33,7 +33,7 @@ func NewTLSClientCommand() *cobra.Command {
 func queryWithTLS() {
 	myTLS, err := config.BuildClientTLSConfig(
 		func(c *tls.Config) {
-			//nolint:whitespace // editor/linter issue
+			//nolint:whitespace,gosec // editor/linter issue, keep showcase simple
 			c.VerifyPeerCertificate = func(
 				rawCerts [][]byte,
 				verifiedChains [][]*x509.Certificate,
@@ -59,7 +59,8 @@ func queryWithTLS() {
 		context.Background(),
 		http.MethodGet,
 		url,
-		http.NoBody)
+		http.NoBody,
+	)
 	if err != nil {
 		log.Error("error creating request", log.ErrorField(err))
 		return
@@ -79,7 +80,8 @@ func queryWithTLS() {
 	if err != nil {
 		return
 	}
-	log.Debug("request done",
+	log.Debug(
+		"request done",
 		log.Int("status", resp.StatusCode),
 		log.Int("bytes", len(body)),
 		log.String("body", string(body)),

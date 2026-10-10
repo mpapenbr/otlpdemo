@@ -60,7 +60,8 @@ func doit(apiCounter metric.Int64Counter, apiDuration metric.Float64Histogram) e
 		context.Background(),
 		http.MethodGet,
 		"https://jsonplaceholder.typicode.com/todos/1",
-		http.NoBody)
+		http.NoBody,
+	)
 	if err != nil {
 		return err
 	}
@@ -84,6 +85,6 @@ func doit(apiCounter metric.Int64Counter, apiDuration metric.Float64Histogram) e
 		log.Int("status", resp.StatusCode), log.Int("bytes", len(body)))
 	resp.Body.Close()
 	apiCounter.Add(ctx, 1)
-	apiDuration.Record(ctx, (time.Since(start)).Seconds())
+	apiDuration.Record(ctx, time.Since(start).Seconds())
 	return nil
 }

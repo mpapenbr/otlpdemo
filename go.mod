@@ -6,7 +6,7 @@ require (
 	buf.build/gen/go/mpapenbr/petapis/grpc/go v1.6.2-20240225081811-660e50fef482.1
 	buf.build/gen/go/mpapenbr/petapis/protocolbuffers/go v1.36.12-20240225081811-660e50fef482.2
 	github.com/fsnotify/fsnotify v1.10.1
-	github.com/jackc/pgx/v5 v5.12.0
+	github.com/jackc/pgx/v5 v5.13.0
 	github.com/samber/lo v1.53.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.1.0
